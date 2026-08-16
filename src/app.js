@@ -448,6 +448,28 @@
       "you bash forward. Make one melee attack against a creature within 5 feet. On a hit, it takes 2d8 bludgeoning damage and must succeed on a DC 14 Strength saving throw or be knocked prone.",
       "you reflect the blow. The next time a creature hits you with a melee attack before the start of your next turn, it takes damage equal to the damage it dealt you.",
     ],
+    // Kick, Shield Bash and their kin are generic body-check maneuvers the
+    // games hang off dozens of otherwise-unrelated weapons, so they need
+    // their own bucket rather than falling out of the weapon's shape.
+    bash: [
+      "you drive a boot or shield-rim into the target. This attack deals no extra damage, but on a hit the target must succeed on a DC 13 Strength saving throw or be knocked prone or pushed 10 feet away, your choice.",
+      "you slam forward with your whole body. Make one attack against a creature within 5 feet. On a hit, it deals an extra 1d6 bludgeoning damage and the target must succeed on a DC 13 Strength saving throw or be knocked prone.",
+      "you knock the target off balance. Make one attack with this weapon. On a hit, the target has disadvantage on the next attack roll it makes before the end of its next turn.",
+    ],
+    // Parry is a read-and-punish, not a swing — it belongs on a reaction,
+    // never as an attack roll of its own.
+    parry: [
+      "you commit to a parry. Until the start of your next turn, the first time a creature hits you with a melee attack, you can use your reaction to reduce that damage to 0 and stagger the attacker, giving you advantage on your next attack roll against it before the end of your next turn.",
+      "you time a deflection. Until the start of your next turn, the first time a creature misses you with a melee attack, you can use your reaction to make one attack against it with this weapon, dealing an extra 2d6 damage on a hit.",
+      "you turn the blow aside. When a creature hits you with a melee attack, you can use your reaction to halve that damage, or reduce it to 0 if you have a shield equipped.",
+    ],
+    // War cries and oaths buff or frighten; they are not another way to
+    // deal damage.
+    rally: [
+      "you loose a bellowing cry. You and each ally within 30 feet who can hear you gain advantage on your next attack roll made before the end of your next turn.",
+      "you swear an oath aloud. Until the start of your next turn, you have advantage on saving throws against being frightened, and the first attack roll you make each turn has a +2 bonus.",
+      "you let out a defiant roar. Each hostile creature within 15 feet that can hear you must succeed on a DC 13 Wisdom saving throw or be frightened of you until the end of your next turn.",
+    ],
   };
 
   function artGroup(cls, prof) {
@@ -457,6 +479,23 @@
     }
     if (prof && prof.props.some((p) => p === "heavy")) return "heavy";
     return "light";
+  }
+
+  // A handful of named arts (Kick, Parry, war cries...) are reused by the
+  // games across many differently-shaped weapons, so the weapon's shape is
+  // not a reliable guide to what they actually do. Route those by name
+  // first, and only fall back to the shape-based group for everything else.
+  const ART_OVERRIDES = [
+    { match: /\bkick\b|\bstomp\b|shield bash|shield strike|barricade shield/i, group: "bash" },
+    { match: /\bparry\b/i, group: "parry" },
+    { match: /\bwar ?cry\b|\bbraggart's roar\b|\btroll's roar\b|\bregal roar\b/i, group: "rally" },
+  ];
+
+  function resolveArtGroup(skillName, fallback) {
+    for (const o of ART_OVERRIDES) {
+      if (o.match.test(skillName)) return o.group;
+    }
+    return fallback;
   }
 
   // ------------------------------------------------------------------
@@ -674,6 +713,21 @@
     return null;
   }
 
+  // A few weapons carry an explicit "effective against X" call-out in their
+  // own in-game text (the Dragonslayer Spear is built to kill dragons). That
+  // should show up as a named trait, not get silently dropped.
+  const CREATURE_BONUS = [
+    { match: /effective against dragons|dragon family foes/i,
+      n: "Dragonslayer",
+      t: "This weapon deals an extra 2d6 damage against dragons." },
+  ];
+
+  function detectCreatureBonus(item) {
+    const src = [item.effects || "", (item.desc || []).join(" ")].join(" ");
+    for (const c of CREATURE_BONUS) if (c.match.test(src)) return c;
+    return null;
+  }
+
   function rollCurse(rng) { return R.pick(rng, CURSES); }
 
   // ------------------------------------------------------------------
@@ -733,6 +787,10 @@
     const status = detectStatus(item);
     if (status) traits.push({ n: status.name, t: status.text });
 
+    // An explicit "effective against X" from the weapon's own lore.
+    const creatureBonus = detectCreatureBonus(item);
+    if (creatureBonus) traits.push({ n: creatureBonus.n, t: creatureBonus.t });
+
     // Infusion.
     let infusion = null;
     if (opts.infusions && rarity.tier > 0 && R.chance(rng, 0.72)) {
@@ -742,7 +800,7 @@
 
     // The weapon's real Ash of War / skill, as an activated art.
     if (item.skill && !/^no skill$/i.test(item.skill) && rarity.tier > 0 && opts.arts) {
-      const group = artGroup(item.class, prof);
+      const group = resolveArtGroup(item.skill, artGroup(item.class, prof));
       traits.push({
         n: item.skill + " (Weapon Art)",
         t: `This weapon has 3 charges and regains all of them at dawn. As a bonus action, you can expend a charge to invoke its art: ${R.pick(rng, ARTS[group])}`,
@@ -815,9 +873,10 @@
     if (status) traits.push({ n: status.name, t: status.text });
 
     if (item.skill && !/^no skill$/i.test(item.skill) && rarity.tier > 0 && opts.arts) {
+      const group = resolveArtGroup(item.skill, "guard");
       traits.push({
         n: item.skill + " (Shield Art)",
-        t: `This shield has 3 charges and regains all of them at dawn. As a bonus action, you can expend a charge: ${R.pick(rng, ARTS.guard)}`,
+        t: `This shield has 3 charges and regains all of them at dawn. As a bonus action, you can expend a charge: ${R.pick(rng, ARTS[group])}`,
       });
     }
 
@@ -1028,8 +1087,11 @@
     const dmg = R.pick(rng, ["3d6 fire", "3d6 lightning", "2d6 poison", "4d6 force"]);
     const rider = R.pick(rng, ["1d6 fire", "1d6 lightning", "1d6 cold", "1d4 poison", "1d6 radiant"]);
     // An Ash of War is bound to whatever weapon the smith has to hand, so it
-    // must not assume a bow.
-    const art = R.pick(rng, ARTS[R.pick(rng, ["heavy", "light", "reach"])]);
+    // must not assume a bow — but it should still describe what the ash is
+    // actually named (Ash of War: Kick should read like a kick), not a
+    // shape picked at random.
+    const artGroupName = resolveArtGroup(cleanName(item.name), R.pick(rng, ["heavy", "light", "reach"]));
+    const art = R.pick(rng, ARTS[artGroupName]);
 
     const text = tpl.t
       .replace("{HD}", hd).replace("{TEMP}", temp)
