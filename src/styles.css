@@ -1,0 +1,550 @@
+/* ==========================================================================
+   Souls Forge — a D&D 5e item generator in the key of Dark Souls / Elden Ring
+   Visual direction: the FromSoftware item-inspect panel. Warm near-black
+   grounds, parchment text, tarnished Erdtree gold, one bonfire ember.
+   ========================================================================== */
+
+:root {
+  /* ground */
+  --void:    #0a0908;
+  --ash:     #14110d;
+  --stone:   #1d1913;
+  --niche:   #0d0b09;
+  /* ink */
+  --bone:    #e7ddc6;
+  --dust:    #9c917a;
+  --faint:   #6b6353;
+  /* accents */
+  --gold:    #c8a52f;
+  --gold-dk: #6b5717;
+  --ember:   #d4622a;
+  --glint:   #7aa8cc;
+  --blood:   #a33131;
+  --rot:     #8f9a3a;
+
+  --line:    rgba(200, 165, 47, 0.22);
+  --line-soft: rgba(231, 221, 198, 0.09);
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+           "URW Palladio L", Georgia, serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+  --pad: clamp(1rem, 2.5vw, 2rem);
+  --radius: 2px;
+}
+
+/* Curse corrupts the chrome — gold goes to a drowned violet, ember to bruise. */
+.card.is-cursed {
+  --gold:    #9b86c4;
+  --gold-dk: #3f3358;
+  --ember:   #6f4a8f;
+  --line:    rgba(155, 134, 196, 0.28);
+  --bone:    #ded6e6;
+  --dust:    #948aa6;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--void);
+  color: var(--bone);
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.6;
+  /* ember haze low on the page, like light off a bonfire */
+  background-image:
+    radial-gradient(120ch 60ch at 50% 118%, rgba(212, 98, 42, 0.10), transparent 70%),
+    radial-gradient(90ch 50ch at 12% -10%, rgba(200, 165, 47, 0.055), transparent 70%);
+  background-attachment: fixed;
+}
+
+/* ---------- typographic utilities ---------- */
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--dust);
+  font-weight: 500;
+}
+
+.rule {
+  height: 1px;
+  border: 0;
+  margin: 0;
+  background: linear-gradient(90deg, transparent, var(--line) 12%, var(--line) 88%, transparent);
+}
+
+/* ---------- masthead ---------- */
+
+.masthead {
+  border-bottom: 1px solid var(--line);
+  padding: clamp(1.25rem, 3vw, 2.25rem) var(--pad) clamp(1rem, 2vw, 1.5rem);
+  text-align: center;
+  position: relative;
+}
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4.2vw, 2.6rem);
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-shadow: 0 0 28px rgba(200, 165, 47, 0.28);
+}
+
+.masthead p {
+  margin: 0.7rem auto 0;
+  max-width: 62ch;
+  color: var(--dust);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* ---------- shell ---------- */
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(1.25rem, 3vw, 2.5rem) var(--pad) 4rem;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- control rail ---------- */
+
+.rail {
+  position: sticky;
+  top: 1.25rem;
+  border: 1px solid var(--line-soft);
+  background: linear-gradient(180deg, var(--ash), rgba(20, 17, 13, 0.55));
+  padding: 1.25rem 1.15rem 1.4rem;
+}
+
+@media (max-width: 860px) {
+  .rail { position: static; }
+}
+
+.rail-group + .rail-group { margin-top: 1.35rem; }
+
+.rail-group > .eyebrow {
+  display: block;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+/* segmented pickers */
+
+.seg { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+
+.seg label {
+  flex: 1 1 auto;
+  min-width: fit-content;
+}
+
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+
+.seg span {
+  display: block;
+  text-align: center;
+  padding: 0.34rem 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dust);
+  border: 1px solid var(--line-soft);
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s, background-color 0.18s;
+  user-select: none;
+}
+
+.seg span:hover { color: var(--bone); border-color: var(--line); }
+
+.seg input:checked + span {
+  color: var(--void);
+  background: var(--gold);
+  border-color: var(--gold);
+  font-weight: 600;
+}
+
+.seg input:focus-visible + span {
+  outline: 2px solid var(--glint);
+  outline-offset: 2px;
+}
+
+/* toggles */
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.32rem 0;
+  cursor: pointer;
+  font-size: 0.83rem;
+  color: var(--dust);
+  transition: color 0.18s;
+}
+
+.toggle:hover { color: var(--bone); }
+
+.toggle input { position: absolute; opacity: 0; pointer-events: none; }
+
+.toggle .box {
+  flex: 0 0 auto;
+  width: 1.55rem;
+  height: 0.9rem;
+  border: 1px solid var(--line);
+  background: var(--niche);
+  position: relative;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.toggle .box::after {
+  content: "";
+  position: absolute;
+  inset: 2px auto 2px 2px;
+  width: 0.45rem;
+  background: var(--faint);
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.toggle input:checked + .box { border-color: var(--gold); }
+.toggle input:checked + .box::after {
+  transform: translateX(0.6rem);
+  background: var(--gold);
+  box-shadow: 0 0 8px rgba(200, 165, 47, 0.7);
+}
+
+.toggle input:focus-visible + .box {
+  outline: 2px solid var(--glint);
+  outline-offset: 2px;
+}
+
+.toggle input:checked ~ .lbl { color: var(--bone); }
+
+/* buttons */
+
+.actions { margin-top: 1.5rem; display: grid; gap: 0.5rem; }
+
+button {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--dust);
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s, background-color 0.18s;
+}
+
+button:hover { color: var(--bone); border-color: var(--gold); }
+button:focus-visible { outline: 2px solid var(--glint); outline-offset: 2px; }
+
+button.primary {
+  color: var(--gold);
+  border-color: var(--gold-dk);
+  background: linear-gradient(180deg, rgba(200, 165, 47, 0.12), rgba(200, 165, 47, 0.03));
+  font-size: 0.78rem;
+  padding: 0.9rem 1rem;
+  font-weight: 600;
+}
+
+button.primary:hover {
+  color: var(--void);
+  background: var(--gold);
+  border-color: var(--gold);
+  box-shadow: 0 0 26px rgba(200, 165, 47, 0.32);
+}
+
+.actions .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+/* ---------- the item card ---------- */
+
+.card {
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, var(--stone), var(--ash) 40%, var(--void));
+  padding: 0;
+  position: relative;
+  min-height: 30rem;
+}
+
+/* hairline inner frame, like an inventory slot */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid var(--line-soft);
+  pointer-events: none;
+}
+
+.card-head {
+  display: grid;
+  grid-template-columns: minmax(0, 168px) minmax(0, 1fr);
+  gap: clamp(1rem, 2.5vw, 1.75rem);
+  padding: clamp(1.25rem, 3vw, 2rem);
+  align-items: start;
+}
+
+@media (max-width: 560px) {
+  .card-head { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+}
+
+/* --- the plinth: artwork in a lit stone niche (signature element) --- */
+
+.plinth {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 168px;
+  background:
+    radial-gradient(circle at 50% 58%, rgba(212, 98, 42, 0.20), transparent 68%),
+    var(--niche);
+  border: 1px solid var(--line-soft);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.plinth::before {
+  /* ember bloom behind the object */
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -32%;
+  width: 132%;
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(212, 98, 42, 0.30), transparent 62%);
+  pointer-events: none;
+}
+
+.plinth img {
+  position: relative;
+  max-width: 84%;
+  max-height: 84%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.85)) contrast(1.06);
+}
+
+.plinth .sigil {
+  position: relative;
+  font-family: var(--mono);
+  font-size: 2.6rem;
+  color: var(--gold-dk);
+  letter-spacing: 0.1em;
+}
+
+.card-title { min-width: 0; }
+
+.card-title .eyebrow { display: block; margin-bottom: 0.5rem; }
+
+.card-title h2 {
+  margin: 0;
+  font-size: clamp(1.35rem, 3.4vw, 2rem);
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 22px rgba(200, 165, 47, 0.22);
+}
+
+.card-title .subtype {
+  margin: 0.55rem 0 0;
+  font-style: italic;
+  color: var(--dust);
+  font-size: 0.95rem;
+}
+
+.attune {
+  display: inline-block;
+  margin-top: 0.7rem;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--glint);
+  border: 1px solid rgba(122, 168, 204, 0.4);
+  padding: 0.2rem 0.5rem;
+}
+
+/* --- body --- */
+
+.card-body { padding: 0 clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem); }
+
+.statline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.4rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
+  margin-bottom: 1.25rem;
+}
+
+.statline div { display: flex; align-items: baseline; gap: 0.45rem; }
+.statline dt { color: var(--faint); font-family: var(--mono); font-size: 0.6rem;
+               letter-spacing: 0.16em; text-transform: uppercase; }
+.statline dd { margin: 0; font-family: var(--mono); font-size: 0.82rem; color: var(--bone); }
+
+.props {
+  margin: 0 0 1.35rem;
+  color: var(--dust);
+  font-size: 0.88rem;
+  font-style: italic;
+}
+
+/* traits */
+
+.trait { margin: 0 0 0.95rem; font-size: 0.94rem; }
+.trait:last-child { margin-bottom: 0; }
+.trait b { color: var(--gold); font-weight: 600; font-style: italic; }
+.trait.is-curse b { color: var(--blood); }
+.card.is-cursed .trait.is-curse b { color: #c9a0e8; }
+
+.section-label {
+  display: block;
+  margin: 1.6rem 0 0.85rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+/* the in-game description, in its own recessed panel */
+
+.lore {
+  margin: 1.6rem 0 0;
+  padding: 1rem 1.15rem;
+  background: rgba(0, 0, 0, 0.32);
+  border-left: 2px solid var(--gold-dk);
+}
+
+.lore p {
+  margin: 0 0 0.7rem;
+  font-style: italic;
+  color: var(--dust);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.lore p:last-child { margin-bottom: 0; }
+
+/* provenance footer */
+
+.prov {
+  margin-top: 1.5rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--line-soft);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.prov a { color: var(--dust); text-decoration: none; border-bottom: 1px solid var(--line-soft); }
+.prov a:hover { color: var(--gold); border-color: var(--gold); }
+
+/* ---------- hoard (multi-item) view ---------- */
+
+.hoard { display: grid; gap: 1.25rem; }
+.hoard .card { min-height: 0; }
+
+/* ---------- empty + toast ---------- */
+
+.empty {
+  display: grid;
+  place-content: center;
+  gap: 0.8rem;
+  min-height: 30rem;
+  text-align: center;
+  color: var(--faint);
+  padding: 2rem;
+}
+
+.empty .mark {
+  font-size: 3rem;
+  color: var(--gold-dk);
+  letter-spacing: 0.2em;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 2rem;
+  transform: translate(-50%, 1.5rem);
+  background: var(--stone);
+  border: 1px solid var(--gold-dk);
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.7rem 1.4rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 40;
+}
+
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- kindle: the one orchestrated moment ---------- */
+
+@keyframes kindle {
+  from { opacity: 0; transform: translateY(7px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes flare {
+  0%   { opacity: 0; transform: scale(0.86); filter: brightness(2.6); }
+  55%  { opacity: 1; }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+.card.kindling { animation: kindle 0.42s ease-out both; }
+.card.kindling .plinth img,
+.card.kindling .plinth .sigil { animation: flare 0.75s ease-out both; }
+.card.kindling .card-title h2 { animation: kindle 0.5s 0.06s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---------- footer ---------- */
+
+.colophon {
+  border-top: 1px solid var(--line-soft);
+  padding: 2rem var(--pad) 3rem;
+  text-align: center;
+  color: var(--faint);
+  font-size: 0.76rem;
+  line-height: 1.8;
+}
+
+.colophon a { color: var(--dust); }
+.colophon a:hover { color: var(--gold); }

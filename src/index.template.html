@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Souls Forge — D&amp;D 5e items from Dark Souls &amp; Elden Ring</title>
+<meta name="description" content="A random D&amp;D 5e item generator that draws real weapons, armor, rings and curios from Dark Souls and Elden Ring, then gives them playable 5e stats with optional infusions, weapon arts and curses.">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="Souls Forge">
+<meta property="og:description" content="Random D&amp;D 5e items in the flavor of Dark Souls and Elden Ring.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>%F0%9F%97%A1%EF%B8%8F</text></svg>">
+<style>/*__CSS__*/</style>
+</head>
+<body>
+
+<header class="masthead">
+  <h1>Souls Forge</h1>
+  <p>Random D&amp;D 5e items drawn from the armories of Lordran and the Lands Between. Every piece is a real
+     armament, with its own artwork and its own in-game description, converted to stats you can put on a table tonight.</p>
+</header>
+
+<main class="shell">
+
+  <aside class="rail" aria-label="Generator settings">
+
+    <div class="rail-group">
+      <span class="eyebrow">What to forge</span>
+      <div class="seg" role="radiogroup" aria-label="Item type">
+        <label><input type="radio" name="kind" value="any" checked><span>Any</span></label>
+        <label><input type="radio" name="kind" value="weapon"><span>Weapon</span></label>
+        <label><input type="radio" name="kind" value="armor"><span>Armor</span></label>
+        <label><input type="radio" name="kind" value="shield"><span>Shield</span></label>
+        <label><input type="radio" name="kind" value="catalyst"><span>Catalyst</span></label>
+        <label><input type="radio" name="kind" value="ring"><span>Ring</span></label>
+        <label><input type="radio" name="kind" value="item"><span>Curio</span></label>
+      </div>
+    </div>
+
+    <div class="rail-group">
+      <span class="eyebrow">Source</span>
+      <div class="seg" role="radiogroup" aria-label="Source game">
+        <label><input type="radio" name="game" value="any" checked><span>Both</span></label>
+        <label><input type="radio" name="game" value="ds"><span>Dark Souls</span></label>
+        <label><input type="radio" name="game" value="er"><span>Elden Ring</span></label>
+      </div>
+    </div>
+
+    <div class="rail-group">
+      <span class="eyebrow">Rarity</span>
+      <div class="seg" role="radiogroup" aria-label="Rarity">
+        <label><input type="radio" name="rarity" value="any" checked><span>Roll</span></label>
+        <label><input type="radio" name="rarity" value="common"><span>Common</span></label>
+        <label><input type="radio" name="rarity" value="uncommon"><span>Uncommon</span></label>
+        <label><input type="radio" name="rarity" value="rare"><span>Rare</span></label>
+        <label><input type="radio" name="rarity" value="veryrare"><span>Very rare</span></label>
+        <label><input type="radio" name="rarity" value="legendary"><span>Legendary</span></label>
+      </div>
+    </div>
+
+    <div class="rail-group">
+      <span class="eyebrow">Enchantment</span>
+      <label class="toggle"><input type="checkbox" id="t-magical" checked><span class="box"></span><span class="lbl">Magic items</span></label>
+      <label class="toggle"><input type="checkbox" id="t-infusions" checked><span class="box"></span><span class="lbl">Infusions &amp; affinities</span></label>
+      <label class="toggle"><input type="checkbox" id="t-arts" checked><span class="box"></span><span class="lbl">Weapon arts</span></label>
+      <label class="toggle"><input type="checkbox" id="t-curses"><span class="box"></span><span class="lbl">Curses</span></label>
+      <label class="toggle"><input type="checkbox" id="t-art" checked><span class="box"></span><span class="lbl">Only items with artwork</span></label>
+    </div>
+
+    <div class="rail-group">
+      <span class="eyebrow">How many</span>
+      <div class="seg" role="radiogroup" aria-label="How many items">
+        <label><input type="radio" name="count" value="1" checked><span>1</span></label>
+        <label><input type="radio" name="count" value="3"><span>3</span></label>
+        <label><input type="radio" name="count" value="5"><span>5</span></label>
+        <label><input type="radio" name="count" value="10"><span>10</span></label>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="forge">Forge</button>
+      <div class="row">
+        <button id="reroll">Reroll stats</button>
+        <button id="copy">Copy</button>
+      </div>
+      <button id="link">Copy permalink</button>
+    </div>
+
+  </aside>
+
+  <div id="out" class="hoard" aria-live="polite"></div>
+
+</main>
+
+<footer class="colophon">
+  <p>Item names, artwork and in-game descriptions belong to FromSoftware and Bandai Namco, and are drawn from the
+     <a href="https://darksouls.fandom.com/" target="_blank" rel="noopener">Dark Souls</a> and
+     <a href="https://eldenring.fandom.com/" target="_blank" rel="noopener">Elden Ring</a> wikis
+     (text <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a>).
+     Artwork is hotlinked from those wikis, not redistributed here. This is an unofficial fan tool with no affiliation
+     to FromSoftware, Bandai Namco or Wizards of the Coast.</p>
+  <p>5e statistics are generated fresh and are not from the games. Press <kbd>Space</kbd> to forge again.</p>
+</footer>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>window.SOULS_DATA=/*__DATA__*/;</script>
+<script>/*__JS__*/</script>
+</body>
+</html>
