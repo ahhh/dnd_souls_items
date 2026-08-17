@@ -1053,27 +1053,35 @@ button.primary:hover {
   // spiral into character death, permanent zeroing of a stat, or an
   // unusable item — a curse is a toll you pay for power, not a second
   // save-or-die stapled to your gear.
+  //
+  // `on` records what the curse needs from the item it is stuck to, because
+  // "each time you hit a creature with this item" is nonsense on a pair of
+  // greaves: "strike" needs something you attack with, "held" something you
+  // keep in hand, "bonus" something with a numeric bonus to eat away at.
+  // Untagged curses fit anything. `bearer` marks the curses that afflict the
+  // person rather than the object, which are the only ones a single-use
+  // consumable can pass on.
   // ------------------------------------------------------------------
 
   const CURSES = [
     { n: "Cursed", t: "While you are attuned to this item, your hit point maximum is halved. This effect ends when the curse is lifted by a remove curse spell or a purging stone." },
     { n: "Hollowing", t: "Each dawn while you are attuned to this item, you must succeed on a DC 13 Charisma saving throw or your Charisma score is reduced by 1 (to a minimum of 3), and you look a little less like yourself. All lost points return when the curse is lifted." },
-    { n: "Bound", t: "This item is magically bound to your hand. Once you attune to it, you cannot willingly let go of it, stow it, or unequip it, and you have disadvantage on attack rolls you make with any other weapon while it remains bound. A remove curse spell ends this effect." },
-    { n: "Blood Debt", t: "Each time you hit a creature with this item, you take 1d4 necrotic damage that can't be reduced or prevented. The item drinks first, and gives after." },
-    { n: "Egg Burden", t: "A parasite has made its home upon you. Your speed is reduced by 10 feet, and you have disadvantage on Charisma (Persuasion) checks and Dexterity (Stealth) checks made against or in front of any creature that could notice it move beneath your skin." },
+    { n: "Bound", on: "held", t: "This item is magically bound to your hand. Once you attune to it, you cannot willingly let go of it, stow it, or unequip it, and you have disadvantage on attack rolls you make with any other weapon while it remains bound. A remove curse spell ends this effect." },
+    { n: "Blood Debt", on: "strike", t: "Each time you hit a creature with this item, you take 1d4 necrotic damage that can't be reduced or prevented. The item drinks first, and gives after." },
+    { n: "Egg Burden", bearer: true, t: "A parasite has made its home upon you. Your speed is reduced by 10 feet, and you have disadvantage on Charisma (Persuasion) checks and Dexterity (Stealth) checks made against or in front of any creature that could notice it move beneath your skin." },
     { n: "Basilisk's Gaze", t: "Whenever you fail a saving throw against a spell or magical effect while attuned to this item, you must succeed on a DC 13 Constitution saving throw or be blinded until the end of your next turn." },
     { n: "Covetous", t: "You must succeed on a DC 15 Wisdom saving throw to give this item away, sell it, or leave it behind; on a failure, you keep it and cannot try again for 24 hours. Whenever it is not on your person, you have disadvantage on all saving throws, your thoughts too consumed with wanting it back." },
-    { n: "Abyssal Hunger", t: "You must slay a living creature with this item at least once every 7 days. Each day beyond that you go without doing so, you have disadvantage on all attack rolls, ability checks, and saving throws until you feed it again. Going hungry longer doesn't make this worse." },
-    { n: "Frenzied Flame", t: "When a creature scores a critical hit against you, you must succeed on a DC 15 Wisdom saving throw or spend your next turn attacking the creature nearest to you, ally or not." },
+    { n: "Abyssal Hunger", on: "strike", t: "You must slay a living creature with this item at least once every 7 days. Each day beyond that you go without doing so, you have disadvantage on all attack rolls, ability checks, and saving throws until you feed it again. Going hungry longer doesn't make this worse." },
+    { n: "Frenzied Flame", bearer: true, t: "When a creature scores a critical hit against you, you must succeed on a DC 15 Wisdom saving throw or spend your next turn attacking the creature nearest to you, ally or not." },
     { n: "Weight of the Rock", t: "This item is preternaturally heavy no matter how it looks or how little it weighs on paper. Your speed is reduced by 10 feet while you carry it, and you have disadvantage on Dexterity saving throws made to reduce or avoid damage from an area effect." },
-    { n: "Fading", t: "Each dawn, this item's bonus to attack and damage rolls, or to AC, decreases by 1, to a minimum of +0. It is fully restored the first time you slay a creature whose challenge rating is 5 or higher with it." },
-    { n: "Ghostly", t: "You are as much shade as flesh, and healing magic finds you hard to hold onto. Whenever a creature other than you restores your hit points with a spell or magical effect, you regain only half as many, rounded down. Living creatures also find your presence unsettling, giving you disadvantage on Charisma (Persuasion) checks made against them." },
-    { n: "Grave-Cold", t: "Your body runs unnaturally cold. You have vulnerability to cold damage, gain no benefit from warmth of any kind, and have disadvantage on Constitution saving throws made to maintain concentration." },
-    { n: "Marked of Death", t: "Your soul is marked for the grave. You have disadvantage on death saving throws, and whenever you spend a Hit Die to heal during a short rest, you regain only the minimum possible hit points from it instead of rolling." },
+    { n: "Fading", on: "bonus", t: "Each dawn, this item's bonus to attack and damage rolls, or to AC, decreases by 1, to a minimum of +0. It is fully restored the first time you slay a creature whose challenge rating is 5 or higher with it." },
+    { n: "Ghostly", bearer: true, t: "You are as much shade as flesh, and healing magic finds you hard to hold onto. Whenever a creature other than you restores your hit points with a spell or magical effect, you regain only half as many, rounded down. Living creatures also find your presence unsettling, giving you disadvantage on Charisma (Persuasion) checks made against them." },
+    { n: "Grave-Cold", bearer: true, t: "Your body runs unnaturally cold. You have vulnerability to cold damage, gain no benefit from warmth of any kind, and have disadvantage on Constitution saving throws made to maintain concentration." },
+    { n: "Marked of Death", bearer: true, t: "Your soul is marked for the grave. You have disadvantage on death saving throws, and whenever you spend a Hit Die to heal during a short rest, you regain only the minimum possible hit points from it instead of rolling." },
     { n: "Serpent's Tithe", t: "This item consumes 10 gp worth of coin or gems each dawn. If it is not fed, all of its magical properties are dormant until it is." },
     { n: "Sleep-Wreathed", t: "When you finish a long rest while attuned to this item, you must succeed on a DC 13 Constitution saving throw or gain no benefit from it, having spent the night in dreams that were not yours." },
     { n: "Toxic", t: "Each dawn while you are attuned to this item, you must succeed on a DC 13 Constitution saving throw or be poisoned for 1 hour as its venom seeps outward from wherever it touches you." },
-    { n: "Rusted", t: "This item seizes at the worst moment. The first time you hit with an attack using it after each short or long rest, roll a d20; on a 1, that attack deals no damage and you have disadvantage on damage rolls made with it until the end of your next turn." },
+    { n: "Rusted", on: "strike", t: "This item seizes at the worst moment. The first time you hit with an attack using it after each short or long rest, roll a d20; on a 1, that attack deals no damage and you have disadvantage on damage rolls made with it until the end of your next turn." },
   ];
 
   // ------------------------------------------------------------------
@@ -1160,6 +1168,23 @@ button.primary:hover {
       if (o.match.test(skillName)) return o.group;
     }
     return fallback;
+  }
+
+  // Ashes of War are an Elden Ring idea, so no Dark Souls armament has a skill
+  // recorded, and the wikis are patchy about the rest — roughly half the
+  // scraped weapons have none. The arts toggle promises an art, so name one
+  // after the weapon's shape rather than quietly leaving it off.
+  const ART_NAMES = {
+    heavy: "Crushing Sweep",
+    light: "Quickstep",
+    reach: "Charging Lunge",
+    ranged: "Marked Shot",
+    guard: "Shield Wall",
+  };
+
+  // Does the wiki actually know what this thing's art is called?
+  function namedSkill(item) {
+    return item.skill && !/^no skill$/i.test(item.skill) ? item.skill : null;
   }
 
   // ------------------------------------------------------------------
@@ -1331,8 +1356,9 @@ button.primary:hover {
       const forced = RARITIES.find((r) => r.key === opts.rarity);
       if (forced) return forced;
     }
-    // A magical run still turns up the occasional mundane masterwork.
-    if (R.chance(rng, 0.12)) return RARITIES[0];
+    // "Magic items" on means magic items. Mundane gear is what the toggle is
+    // for, or the common setting on the rarity picker — it must not leak into
+    // a magical run, where it silently blanks every other toggle downstream.
     const pool = RARITIES.filter((r) => r.tier > 0);
     return R.weighted(rng, pool.map((r) => ({ ...r, w: r.w })));
   }
@@ -1392,7 +1418,36 @@ button.primary:hover {
     return null;
   }
 
-  function rollCurse(rng) { return R.pick(rng, CURSES); }
+  // `ctx` describes the item being built: { strike, held, bonus } for what the
+  // item can support, or { bearerOnly: true } for a single-use consumable,
+  // which can only pass on a curse that afflicts the person.
+  function rollCurse(rng, ctx) {
+    const pool = CURSES.filter((c) => {
+      if (ctx.bearerOnly) return c.bearer;
+      if (c.on === "strike") return !!ctx.strike;
+      if (c.on === "held") return !!ctx.held;
+      if (c.on === "bonus") return (ctx.bonus || 0) > 0;
+      return true;
+    });
+    return R.pick(rng, pool);
+  }
+
+  // Curses are a toggle, not a dice roll: if the user asked for cursed items,
+  // every item comes out cursed. The only shaping left is *which* curse can
+  // sit on this particular item. Returns whether one was applied, since a
+  // cursed item always requires attunement — most of the curse texts say so.
+  function applyCurse(traits, opts, rng, ctx) {
+    if (!opts.curses) return false;
+    const c = rollCurse(rng, ctx);
+    traits.push({
+      n: c.n,
+      t: ctx.bearerOnly
+        ? "The taint outlives the using: whoever consumes this takes the curse upon themselves until it is lifted. " + c.t
+        : c.t,
+      curse: true,
+    });
+    return true;
+  }
 
   // ------------------------------------------------------------------
   // Builders — one per item kind. Each returns a normalized card.
@@ -1457,16 +1512,18 @@ button.primary:hover {
 
     // Infusion.
     let infusion = null;
-    if (opts.infusions && rarity.tier > 0 && R.chance(rng, 0.72)) {
+    if (opts.infusions && rarity.tier > 0) {
       infusion = rollInfusion(rng, item, rarity);
       traits.push({ n: infusion.name + " Infusion", t: infusion.text });
     }
 
     // The weapon's real Ash of War / skill, as an activated art.
-    if (item.skill && !/^no skill$/i.test(item.skill) && rarity.tier > 0 && opts.arts) {
-      const group = resolveArtGroup(item.skill, artGroup(item.class, prof));
+    if (opts.arts) {
+      const shape = artGroup(item.class, prof);
+      const skill = namedSkill(item);
+      const group = skill ? resolveArtGroup(skill, shape) : shape;
       traits.push({
-        n: item.skill + " (Weapon Art)",
+        n: (skill || ART_NAMES[shape]) + " (Weapon Art)",
         t: `This weapon has 3 charges and regains all of them at dawn. As a bonus action, you can expend a charge to invoke its art: ${R.pick(rng, ARTS[group])}`,
       });
     }
@@ -1481,13 +1538,8 @@ button.primary:hover {
       }
     }
 
-    const cursed = opts.curses && rarity.tier > 0 && R.chance(rng, 0.18);
-    if (cursed) {
-      const c = rollCurse(rng);
-      traits.push({ n: c.n, t: c.t, curse: true });
-    }
-
-    const attuned = rarity.tier > 0 && (cursed || R.chance(rng, rarity.attune));
+    const cursed = applyCurse(traits, opts, rng, { strike: true, held: true, bonus });
+    const attuned = cursed || (rarity.tier > 0 && R.chance(rng, rarity.attune));
 
     const name = buildName(item, infusion, bonus, cursed, rng);
     const catLabel = prof.cat === "simple" ? "simple" : "martial";
@@ -1536,10 +1588,11 @@ button.primary:hover {
     const status = detectStatus(item);
     if (status) traits.push({ n: status.name, t: status.text });
 
-    if (item.skill && !/^no skill$/i.test(item.skill) && rarity.tier > 0 && opts.arts) {
-      const group = resolveArtGroup(item.skill, "guard");
+    if (opts.arts) {
+      const skill = namedSkill(item);
+      const group = skill ? resolveArtGroup(skill, "guard") : "guard";
       traits.push({
-        n: item.skill + " (Shield Art)",
+        n: (skill || ART_NAMES.guard) + " (Shield Art)",
         t: `This shield has 3 charges and regains all of them at dawn. As a bonus action, you can expend a charge: ${R.pick(rng, ARTS[group])}`,
       });
     }
@@ -1549,12 +1602,8 @@ button.primary:hover {
       for (const b of rollBoons(rng, rarity, "shield", n)) traits.push({ n: b.n, t: b.t });
     }
 
-    const cursed = opts.curses && rarity.tier > 0 && R.chance(rng, 0.15);
-    if (cursed) {
-      const c = rollCurse(rng);
-      traits.push({ n: c.n, t: c.t, curse: true });
-    }
-    const attuned = rarity.tier > 0 && (cursed || R.chance(rng, rarity.attune));
+    const cursed = applyCurse(traits, opts, rng, { held: true, bonus });
+    const attuned = cursed || (rarity.tier > 0 && R.chance(rng, rarity.attune));
 
     return {
       name: buildName(item, null, bonus, cursed, rng),
@@ -1624,12 +1673,8 @@ button.primary:hover {
     const nBoons = rarity.tier > 0 ? R.int(rng, rarity.boons[0], rarity.boons[1]) : 0;
     for (const b of rollBoons(rng, rarity, "armor", nBoons)) traits.push({ n: b.n, t: b.t });
 
-    const cursed = opts.curses && rarity.tier > 0 && R.chance(rng, 0.16);
-    if (cursed) {
-      const c = rollCurse(rng);
-      traits.push({ n: c.n, t: c.t, curse: true });
-    }
-    const attuned = rarity.tier > 0 && (cursed || R.chance(rng, rarity.attune * 0.8));
+    const cursed = applyCurse(traits, opts, rng, { bonus: isBody ? bonus : 0 });
+    const attuned = cursed || (rarity.tier > 0 && R.chance(rng, rarity.attune * 0.8));
     if (attuned) typeLine += " (requires attunement)";
 
     return {
@@ -1678,12 +1723,8 @@ button.primary:hover {
       for (const b of rollBoons(rng, rarity, "catalyst", n)) traits.push({ n: b.n, t: b.t });
     }
 
-    const cursed = opts.curses && rarity.tier > 0 && R.chance(rng, 0.16);
-    if (cursed) {
-      const c = rollCurse(rng);
-      traits.push({ n: c.n, t: c.t, curse: true });
-    }
-    const attuned = rarity.tier > 0 && (cursed || R.chance(rng, rarity.attune));
+    const cursed = applyCurse(traits, opts, rng, { held: true, bonus });
+    const attuned = cursed || (rarity.tier > 0 && R.chance(rng, rarity.attune));
 
     return {
       name: buildName(item, null, bonus, cursed, rng),
@@ -1716,11 +1757,7 @@ button.primary:hover {
       for (const b of extra) traits.push({ n: b.n, t: b.t });
     }
 
-    const cursed = opts.curses && R.chance(rng, 0.18);
-    if (cursed) {
-      const c = rollCurse(rng);
-      traits.push({ n: c.n, t: c.t, curse: true });
-    }
+    const cursed = applyCurse(traits, opts, rng, {});
     const attuned = cursed || R.chance(rng, Math.max(0.5, rarity.attune));
 
     return {
@@ -1767,19 +1804,18 @@ button.primary:hover {
       for (const b of rollBoons(rng, rarity, "any", 1)) traits.push({ n: b.n, t: b.t });
     }
 
-    const cursed = opts.curses && !consumable && R.chance(rng, 0.12);
-    if (cursed) {
-      const c = rollCurse(rng);
-      traits.push({ n: c.n, t: c.t, curse: true });
-    }
+    // A curse on a single-use consumable can't be a standing property of the
+    // object — there is no object left. It moves to whoever used it instead.
+    const cursed = applyCurse(traits, opts, rng, consumable ? { bearerOnly: true } : {});
+    const attuned = cursed && !consumable;
 
     return {
       name: buildName(item, null, 0, cursed, rng),
       baseName: cleanName(item.name),
       eyebrow: `${GAME_LABEL[item.game]} · ${item.class}`,
-      typeLine: `${consumable ? "Potion or consumable" : "Wondrous item"}, ${rarity.label}`,
+      typeLine: `${consumable ? "Potion or consumable" : "Wondrous item"}, ${rarity.label}${attuned ? " (requires attunement)" : ""}`,
       sub: consumable ? "single use" : "a curio of the old world",
-      attuned: false,
+      attuned,
       stats: [{ k: "Weight", v: "1 lb." }, { k: "Cost", v: R.pick(rng, ["25 gp", "50 gp", "100 gp", "250 gp", "500 gp"]) }],
       props: [], traits, rarity, cursed, item,
     };
@@ -1957,14 +1993,18 @@ button.primary:hover {
       return el ? el.value : "any";
     };
     const on = (id) => document.getElementById(id).checked;
+    // The magic-dependent toggles are greyed out rather than unchecked when
+    // "Magic items" is off, so their boxes can still read as ticked. Honour
+    // what the rail *shows*: with magic off, none of them apply.
+    const magical = on("t-magical");
     return {
       kind: val("kind"),
       game: val("game"),
       rarity: val("rarity"),
-      magical: on("t-magical"),
-      infusions: on("t-infusions"),
-      curses: on("t-curses"),
-      arts: on("t-arts"),
+      magical,
+      infusions: magical && on("t-infusions"),
+      curses: magical && on("t-curses"),
+      arts: magical && on("t-arts"),
       artOnly: on("t-art"),
       count: Number(val("count")) || 1,
     };
