@@ -1046,27 +1046,34 @@ button.primary:hover {
 
   // ------------------------------------------------------------------
   // Curses — drawn from the Souls games' own curse mechanics.
+  //
+  // Every entry here needs to be felt at the table on a normal session's
+  // timescale (not gated behind a nat 1, or an environmental trigger a
+  // given campaign might never hit), and none of them may be able to
+  // spiral into character death, permanent zeroing of a stat, or an
+  // unusable item — a curse is a toll you pay for power, not a second
+  // save-or-die stapled to your gear.
   // ------------------------------------------------------------------
 
   const CURSES = [
     { n: "Cursed", t: "While you are attuned to this item, your hit point maximum is halved. This effect ends when the curse is lifted by a remove curse spell or a purging stone." },
-    { n: "Hollowing", t: "Each dawn while you are attuned to this item, you must succeed on a DC 13 Charisma saving throw or your Charisma score is reduced by 1 (to a minimum of 3). All lost points return when the curse is lifted." },
-    { n: "Bound", t: "Once you attune to this item, you cannot end your attunement voluntarily. While attuned, you are unwilling to part with it and will resist any attempt to take it. A remove curse spell ends this effect." },
-    { n: "Blood Debt", t: "Each time you hit a creature with this item, you take 1d4 necrotic damage. The item drinks first and gives after." },
-    { n: "Egg Burden", t: "A parasite makes its home upon you. Your speed is reduced by 10 feet, and you have disadvantage on Charisma (Persuasion) checks made against creatures who can see you." },
-    { n: "Basilisk's Gaze", t: "On a natural 1 on an attack roll or saving throw while attuned, you must succeed on a DC 13 Constitution saving throw or be blinded for 1 minute." },
-    { n: "Covetous", t: "You must succeed on a DC 15 Wisdom saving throw to give this item away, sell it, or leave it behind. On a failure, you keep it and cannot try again for 24 hours." },
-    { n: "Abyssal Hunger", t: "You must slay a living creature with this item at least once every 24 hours. Each day you fail to do so, you gain one level of exhaustion that can only be removed by feeding the item." },
+    { n: "Hollowing", t: "Each dawn while you are attuned to this item, you must succeed on a DC 13 Charisma saving throw or your Charisma score is reduced by 1 (to a minimum of 3), and you look a little less like yourself. All lost points return when the curse is lifted." },
+    { n: "Bound", t: "This item is magically bound to your hand. Once you attune to it, you cannot willingly let go of it, stow it, or unequip it, and you have disadvantage on attack rolls you make with any other weapon while it remains bound. A remove curse spell ends this effect." },
+    { n: "Blood Debt", t: "Each time you hit a creature with this item, you take 1d4 necrotic damage that can't be reduced or prevented. The item drinks first, and gives after." },
+    { n: "Egg Burden", t: "A parasite has made its home upon you. Your speed is reduced by 10 feet, and you have disadvantage on Charisma (Persuasion) checks and Dexterity (Stealth) checks made against or in front of any creature that could notice it move beneath your skin." },
+    { n: "Basilisk's Gaze", t: "Whenever you fail a saving throw against a spell or magical effect while attuned to this item, you must succeed on a DC 13 Constitution saving throw or be blinded until the end of your next turn." },
+    { n: "Covetous", t: "You must succeed on a DC 15 Wisdom saving throw to give this item away, sell it, or leave it behind; on a failure, you keep it and cannot try again for 24 hours. Whenever it is not on your person, you have disadvantage on all saving throws, your thoughts too consumed with wanting it back." },
+    { n: "Abyssal Hunger", t: "You must slay a living creature with this item at least once every 7 days. Each day beyond that you go without doing so, you have disadvantage on all attack rolls, ability checks, and saving throws until you feed it again. Going hungry longer doesn't make this worse." },
     { n: "Frenzied Flame", t: "When a creature scores a critical hit against you, you must succeed on a DC 15 Wisdom saving throw or spend your next turn attacking the creature nearest to you, ally or not." },
-    { n: "Weight of the Rock", t: "This item weighs ten times its listed weight, and your speed is reduced by 5 feet while you carry it." },
-    { n: "Fading", t: "Each dawn, this item's bonus to attack and damage rolls decreases by 1, to a minimum of +0. It is fully restored the first time you slay a creature whose challenge rating is 5 or higher with it." },
-    { n: "Ghostly", t: "You appear faintly translucent to all who see you. You have disadvantage on Charisma (Persuasion) checks made against living creatures, and beasts refuse to approach you willingly." },
-    { n: "Grave-Cold", t: "You gain no benefit from warmth, and you have vulnerability to cold damage while attuned." },
-    { n: "Marked of Death", t: "You have disadvantage on death saving throws while attuned to this item." },
-    { n: "Serpent's Tithe", t: "This item consumes 50 gp worth of coin or gems each dawn. If it is not fed, all of its magical properties are dormant until it is." },
-    { n: "Sleep-Wreathed", t: "When you finish a long rest, you must succeed on a DC 12 Constitution saving throw or gain no benefit from it, having spent the night in dreams that were not yours." },
-    { n: "Toxic", t: "On a natural 1 on an attack roll with this item, you are poisoned for 1 hour." },
-    { n: "Rusted", t: "In rain, mist, or underwater, this item loses all magical properties and you have disadvantage on damage rolls made with it." },
+    { n: "Weight of the Rock", t: "This item is preternaturally heavy no matter how it looks or how little it weighs on paper. Your speed is reduced by 10 feet while you carry it, and you have disadvantage on Dexterity saving throws made to reduce or avoid damage from an area effect." },
+    { n: "Fading", t: "Each dawn, this item's bonus to attack and damage rolls, or to AC, decreases by 1, to a minimum of +0. It is fully restored the first time you slay a creature whose challenge rating is 5 or higher with it." },
+    { n: "Ghostly", t: "You are as much shade as flesh, and healing magic finds you hard to hold onto. Whenever a creature other than you restores your hit points with a spell or magical effect, you regain only half as many, rounded down. Living creatures also find your presence unsettling, giving you disadvantage on Charisma (Persuasion) checks made against them." },
+    { n: "Grave-Cold", t: "Your body runs unnaturally cold. You have vulnerability to cold damage, gain no benefit from warmth of any kind, and have disadvantage on Constitution saving throws made to maintain concentration." },
+    { n: "Marked of Death", t: "Your soul is marked for the grave. You have disadvantage on death saving throws, and whenever you spend a Hit Die to heal during a short rest, you regain only the minimum possible hit points from it instead of rolling." },
+    { n: "Serpent's Tithe", t: "This item consumes 10 gp worth of coin or gems each dawn. If it is not fed, all of its magical properties are dormant until it is." },
+    { n: "Sleep-Wreathed", t: "When you finish a long rest while attuned to this item, you must succeed on a DC 13 Constitution saving throw or gain no benefit from it, having spent the night in dreams that were not yours." },
+    { n: "Toxic", t: "Each dawn while you are attuned to this item, you must succeed on a DC 13 Constitution saving throw or be poisoned for 1 hour as its venom seeps outward from wherever it touches you." },
+    { n: "Rusted", t: "This item seizes at the worst moment. The first time you hit with an attack using it after each short or long rest, roll a d20; on a 1, that attack deals no damage and you have disadvantage on damage rolls made with it until the end of your next turn." },
   ];
 
   // ------------------------------------------------------------------
